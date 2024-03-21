@@ -11,6 +11,7 @@ import spinal.core._
 
 import cc.redberry.rings
 import cc.redberry.rings.bigint.BigInteger
+
 import rings.poly.PolynomialMethods._
 import rings.scaladsl._
 import syntax._
