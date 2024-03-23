@@ -6,7 +6,7 @@
         {
             "label": "Simulation(Verilator)",
             "type": "shell",
-            "command": "sbt \" Test / run --verbose 1\"",
+            "command": "sbt \" Test / run \"",
             "problemMatcher": [],
             "group": {
                 "kind": "build",
