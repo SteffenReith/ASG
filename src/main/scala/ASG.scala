@@ -60,24 +60,27 @@ class ASG (r1Degree : Int, R1PolyString : String,
 
 object ASG {
 
-  def main(args: Array[String]) : Unit = {
+  // Make a synchronous reset and use the rising edge for the clock
+  private val globalClockConfig = ClockDomainConfig(clockEdge        = RISING,
+                                                    resetKind        = SYNC,
+                                                    resetActiveLevel = HIGH)
 
-    // Make the reset synchronous and use the rising edge for sampling
-    val globalClockConfig = ClockDomainConfig(clockEdge        = RISING,
-                                              resetKind        = SYNC,
-                                              resetActiveLevel = HIGH)
+  // Suppose that the design runs with 100 MHz
+  private val globalFrequency = FixedFrequency(100 MHz)
+
+  def main(args: Array[String]) : Unit = {
 
     // Generate VHDL
     SpinalConfig(mergeAsyncProcess            = true,
                  genVhdlPkg                   = true,
                  defaultConfigForClockDomains = globalClockConfig,
-                 defaultClockDomainFrequency  = FixedFrequency(value = 10 MHz),
+                 defaultClockDomainFrequency  = globalFrequency,
                  targetDirectory              = "gen/src/vhdl").generateVhdl(new ASG(3, "x^3+x^2+1", 4, "x^4+x^3+1", 5, "x^5+x^4+x^3+x+1")).printPruned()
 
     // Generate Verilog / Maybe mergeAsyncProcess = false helps verilator to avoid wrongly detected combinatorial loops
     SpinalConfig(mergeAsyncProcess            = true,
                  defaultConfigForClockDomains = globalClockConfig,
-                 defaultClockDomainFrequency  = FixedFrequency(value = 10 MHz),
+                 defaultClockDomainFrequency  = globalFrequency,
                  targetDirectory              = "gen/src/verilog").generateVerilog(new ASG(3, "x^3+x^2+1", 4, "x^4+x^3+1", 5, "x^5+x^4+x^3+x+1")).printPruned()
 
   }
