@@ -8,12 +8,11 @@
  */
 
 import spinal.core._
-import cc.redberry.rings
+
 import cc.redberry.rings.bigint.BigInteger
 import cc.redberry.rings.primes.BigPrimes._
 import cc.redberry.rings.poly.FiniteField
 import cc.redberry.rings.poly.PolynomialMethods._
-import cc.redberry.rings.scaladsl
 import cc.redberry.rings.scaladsl._
 import syntax._
 
@@ -63,17 +62,19 @@ class LSFR (degree : Int, polyString : String) extends Component {
   val fieldSize = 2.pow(ringPoly.degree)
 
   // A finite field having 2^degree elements
-  private val field = GF(2, fieldSize, "x")
+  private val field = GF(2, ringPoly.degree, "x")
   
-  // The polynomial as field element
-  private val fieldPoly = field(polyString)
-
+  // The given polynomial as field element
+  private val fieldPoly = ringPoly.setCoefficientRingFrom(field.one)
+  
   // Calculate all orders of possible non-trivial subgroups of the multiplicative group
   private val orders = calculateNonTrivialDivisors(fieldSize - 1)
 
   // Test for all possible non-trivial sub-group whether poly generates a subgroup only
-  private val subGroupTests = orders.map(x => field.pow(fieldPoly, x))//.filter(x => (x != field.getOne))
-  println(s"HHHH: ${orders} --- ${subGroupTests}")
+  private val subGroupTests = orders.map(x => fieldPoly.pow(x))//.filter(x => (x != field.getOne))
+
+  println(s"Situation: ${field.cardinality()} --- ${field.characteristic()} --- ${fieldPoly.degree()} --- ${ringPoly} --- ${fieldPoly} --- ${orders} --- ${subGroupTests}")
+
   System.exit(-1)
 
   // Check if we can reach the full period
@@ -137,13 +138,13 @@ object LSFR {
                  genVhdlPkg                   = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/vhdl").generateVhdl(new LSFR(4, "x^4+x+1")).printPruned()
+                 targetDirectory              = "gen/src/vhdl").generateVhdl(new LSFR(4, "1+x+x^4")).printPruned()
 
     // Generate Verilog / Maybe mergeAsyncProcess = false helps verilator to avoid wrongly detected combinatorial loops
     SpinalConfig(mergeAsyncProcess            = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/verilog").generateVerilog(new LSFR(4, "x^4+x+1")).printPruned()
+                 targetDirectory              = "gen/src/verilog").generateVerilog(new LSFR(4, "1+x+x^4")).printPruned()
 
   }
 
