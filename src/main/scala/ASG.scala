@@ -9,7 +9,9 @@
 
 import spinal.core._
 
-class ASG (R1PolyString : String, R2PolyString : String, R3PolyString : String) extends Component {
+class ASG (r1Degree : Int, R1PolyString : String,
+           r2Degree : Int, R2PolyString : String,
+           r3Degree : Int, R3PolyString : String) extends Component {
 
   val io = new Bundle {
 
@@ -26,15 +28,15 @@ class ASG (R1PolyString : String, R2PolyString : String, R3PolyString : String) 
 
   // Create LSFR R1
   println("[ASG]: Create LSFR R1")
-  val R1 = new LSFR(R1PolyString)
+  val R1 = new LSFR(r1Degree, R1PolyString)
 
   // Create LSFR R2
   println("[ASG]: Create LSFR R2")
-  val R2 = new LSFR(R2PolyString)
+  val R2 = new LSFR(r2Degree, R2PolyString)
 
   // Create LSFR R3
   println("[ASG]: Create LSFR R3")
-  val R3 = new LSFR(R3PolyString)
+  val R3 = new LSFR(r3Degree, R3PolyString)
 
   // Create the enable logic
   R1.io.enable := io.enable
@@ -58,7 +60,7 @@ class ASG (R1PolyString : String, R2PolyString : String, R3PolyString : String) 
 
 object ASG {
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]) : Unit = {
 
     // Make the reset synchronous and use the rising edge for sampling
     val globalClockConfig = ClockDomainConfig(clockEdge        = RISING,
@@ -70,13 +72,13 @@ object ASG {
                  genVhdlPkg                   = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = FixedFrequency(value = 10 MHz),
-                 targetDirectory              = "gen/src/vhdl").generateVhdl(new ASG("x^3+x^2+1", "x^4+x^3+1", "x^5+x^4+x^3+x+1")).printPruned()
+                 targetDirectory              = "gen/src/vhdl").generateVhdl(new ASG(3, "x^3+x^2+1", 4, "x^4+x^3+1", 5, "x^5+x^4+x^3+x+1")).printPruned()
 
     // Generate Verilog / Maybe mergeAsyncProcess = false helps verilator to avoid wrongly detected combinatorial loops
     SpinalConfig(mergeAsyncProcess            = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = FixedFrequency(value = 10 MHz),
-                 targetDirectory              = "gen/src/verilog").generateVerilog(new ASG("x^3+x^2+1", "x^4+x^3+1", "x^5+x^4+x^3+x+1")).printPruned()
+                 targetDirectory              = "gen/src/verilog").generateVerilog(new ASG(3, "x^3+x^2+1", 4, "x^4+x^3+1", 5, "x^5+x^4+x^3+x+1")).printPruned()
 
   }
 
