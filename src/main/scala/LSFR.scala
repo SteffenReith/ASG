@@ -49,6 +49,36 @@ class LSFR (degree : Int, polyString : String) extends Component {
 
   }
 
+  // Calculate p^n for an univariate polynomial (the rings version seems to be buggy)
+  def univarPower(p : UnivariatePolynomialZp64, n : IntZ)(implicit field : GaloisField64) : UnivariatePolynomialZp64 = {
+
+    // We only accept positive exponents
+    assert(n >= 0, "ERROR: The exponent of univarPower has to be positive")
+
+    // Init the result to 1
+    var result = field.one
+
+    // For all bit of the exponent n
+    for (i <- (n.bitLength() - 1) to 0 by -1) {
+
+      // Square the temporal value
+      result = result.square()
+
+      // If ith bit of exponent n is set 
+      if (n.testBit(i)) {
+
+        // Mulitply p to the result
+        result = result.multiply(p)
+
+      }
+
+    }
+
+    // Return the result
+    result
+   
+  }
+
   // Create the ring Z/2Z[x]
   private val ring = UnivariateRingZp64(2, "x")
 
@@ -62,7 +92,7 @@ class LSFR (degree : Int, polyString : String) extends Component {
   val fieldSize = 2.pow(ringPoly.degree)
 
   // A finite field having 2^degree elements
-  private val field = GF(2, ringPoly.degree, "x")
+  implicit val field = GF(2, ringPoly.degree, "x")
   
   // The given polynomial as field element
   private val fieldPoly = ringPoly.setCoefficientRingFrom(field.one)
@@ -70,12 +100,12 @@ class LSFR (degree : Int, polyString : String) extends Component {
   // Calculate all orders of possible non-trivial subgroups of the multiplicative group
   private val orders = calculateNonTrivialDivisors(fieldSize - 1)
 
+  // Give some information about the group orders to be checkt
+  val ordStr = orders.mkString(", ")
+  println(s"[LSFR] Check possible subgroups of the following orders: ${ordStr}")
+
   // Test for all possible non-trivial sub-group whether poly generates a subgroup only
-  private val subGroupTests = orders.map(x => fieldPoly.pow(x))//.filter(x => (x != field.getOne))
-
-  println(s"Situation: ${field.cardinality()} --- ${field.characteristic()} --- ${fieldPoly.degree()} --- ${ringPoly} --- ${fieldPoly} --- ${orders} --- ${subGroupTests}")
-
-  System.exit(-1)
+  private val subGroupTests = orders.map(univarPower(fieldPoly, _)).filter(x => (x == field.one))
 
   // Check if we can reach the full period
   assert(subGroupTests.isEmpty, "ERROR: The connection polynomial has to be primitive (generate Z/(2^degree)Z[x])")
