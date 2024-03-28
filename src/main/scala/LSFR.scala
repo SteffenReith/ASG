@@ -18,7 +18,7 @@ import syntax._
 
 import scala.collection.JavaConverters._
 
-class LSFR (degree : Int, polyString : String) extends Component {
+class LSFR (polyString : String) extends Component {
 
   val io = new Bundle {
 
@@ -101,7 +101,7 @@ class LSFR (degree : Int, polyString : String) extends Component {
   private val orders = calculateNonTrivialDivisors(fieldSize - 1)
 
   // Give some information about the group orders to be checkt
-  val ordStr = orders.mkString(", ")
+  private val ordStr = orders.mkString(", ")
   println(s"[LSFR] Check possible subgroups of the following orders: ${ordStr}")
 
   // Test for all possible non-trivial sub-group whether poly generates a subgroup only
@@ -110,9 +110,13 @@ class LSFR (degree : Int, polyString : String) extends Component {
   // Check if we can reach the full period
   assert(subGroupTests.isEmpty, "ERROR: The connection polynomial has to be primitive (generate Z/(2^degree)Z[x])")
 
+  // Calculate the maximal possible period and the degree of the used polynomial
+  private val degree = fieldPoly.degree
+  private val period = 2.pow(degree) - 1
+
   // Give some information about the period
   print("[LSFR] The given polynomial is primitive! ")
-  println("The full period 2^" + degree + " - 1 = " + (2.pow(degree) - 1) + " can be reached!")
+  println("The full period 2^" + degree + " - 1 = " + period + " can be reached!")
 
   // Generate a list of taps and ignore the final +1 monom (it exists since poly is irreducible)
   private val activeTaps = ringPoly.exponents().toArray().dropRight(1)
@@ -148,6 +152,11 @@ class LSFR (degree : Int, polyString : String) extends Component {
   // Shift the register
   fsRegN := genBit ## fsReg(fsReg.high downto 1)
 
+  // Get the period of the LSFR
+  def getPeriod() = period
+  
+  // Get the degree of the used polynomial
+  def getDegree() = degree
 }
 
 object LSFR {
@@ -168,13 +177,13 @@ object LSFR {
                  genVhdlPkg                   = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/vhdl").generateVhdl(new LSFR(4, "1+x+x^4")).printPruned()
+                 targetDirectory              = "gen/src/vhdl").generateVhdl(new LSFR("1+x+x^4")).printPruned()
 
     // Generate Verilog / Maybe mergeAsyncProcess = false helps verilator to avoid wrongly detected combinatorial loops
     SpinalConfig(mergeAsyncProcess            = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/verilog").generateVerilog(new LSFR(4, "1+x+x^4")).printPruned()
+                 targetDirectory              = "gen/src/verilog").generateVerilog(new LSFR("1+x+x^4")).printPruned()
 
   }
 
