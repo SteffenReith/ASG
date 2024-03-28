@@ -55,6 +55,9 @@ class LSFR (polyString : String) extends Component {
     // We only accept positive exponents
     assert(n >= 0, "ERROR: The exponent of univarPower has to be positive")
 
+    // Give some debug info
+    println(s"[LFSR]: Compute (${p})^${n}")
+
     // Init the result to 1
     var result = field.one
 
@@ -102,7 +105,8 @@ class LSFR (polyString : String) extends Component {
 
   // Give some information about the group orders to be checkt
   private val ordStr = orders.mkString(", ")
-  println(s"[LSFR] Check possible subgroups of the following orders: ${ordStr}")
+  print("[LSFR] Check possible subgroups of the following orders: ")
+  if (ordStr.isEmpty) println(" None") else println(s"${ordStr}")
 
   // Test for all possible non-trivial sub-group whether poly generates a subgroup only
   private val subGroupTests = orders.map(univarPower(fieldPoly, _)).filter(x => (x == field.one))
@@ -177,13 +181,13 @@ object LSFR {
                  genVhdlPkg                   = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/vhdl").generateVhdl(new LSFR("1+x+x^4")).printPruned()
+                 targetDirectory              = "gen/src/vhdl").generateVhdl(new LSFR("x ^ 51 + x ^ 6 + x ^ 3 + x + 1")).printPruned()
 
     // Generate Verilog / Maybe mergeAsyncProcess = false helps verilator to avoid wrongly detected combinatorial loops
     SpinalConfig(mergeAsyncProcess            = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/verilog").generateVerilog(new LSFR("1+x+x^4")).printPruned()
+                 targetDirectory              = "gen/src/verilog").generateVerilog(new LSFR("x ^ 51 + x ^ 6 + x ^ 3 + x + 1")).printPruned()
 
   }
 
