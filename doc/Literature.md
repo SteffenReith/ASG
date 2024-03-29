@@ -5,3 +5,4 @@
 - A [list of primitive polynomials](https://www.partow.net/programming/polynomials/index.html)
 - [Searching trinomials](https://maths-people.anu.edu.au/~brent/pd/rpb235.pdf)
 - [A tool](http://seanerikoconnor.freeservers.com/Mathematics/AbstractAlgebra/PrimitivePolynomials/overview.html) for searching primitive polynomials
+- Some infos about ASGs can be found in Wicik, Gliwa, Komorowski, Cryptanalysis of alternating step generators, 2015, DOI:[10.1109/ICMCIS.2015.7158683](http://dx.doi.org/10.1109/ICMCIS.2015.7158683)

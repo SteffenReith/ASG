@@ -4,7 +4,8 @@
  * Create Date:  Thu Mar 16 14:24:06 CET 2023 
  * Module Name:  ASG - A simple alternating step generator (cf. A. Menezes et al., Handbook of Applied Cryptography, p. 209)
  * Project Name: ASG - A simple random number generator 
- *
+ * Remark:       This is only a demo. Since R1 doesn't deliver a de Bruijn sequence (and we did not padding for 
+ *               making one the period is not guaranteed! Hence the given period is only a rough and not reliable assumption
  */
 
 import spinal.core._
