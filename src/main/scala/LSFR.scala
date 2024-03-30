@@ -77,6 +77,9 @@ class LSFR (polyString : String) extends Component {
 
     }
 
+    // Give some debug info
+    println(s"[LFSR]: Calculation of (${p})^${n} completed")
+
     // Return the result
     result
    
@@ -109,7 +112,7 @@ class LSFR (polyString : String) extends Component {
   if (ordStr.isEmpty) println(" None") else println(s"${ordStr}")
 
   // Test for all possible non-trivial sub-group whether poly generates a subgroup only
-  private val subGroupTests = orders.map(univarPower(fieldPoly, _)).filter(x => (x == field.one))
+  private val subGroupTests = orders.par.map(univarPower(fieldPoly, _)).filter(x => (x == field.one))
 
   // Check if we can reach the full period
   assert(subGroupTests.isEmpty, "ERROR: The connection polynomial has to be primitive (generate Z/(2^degree)Z[x])")
