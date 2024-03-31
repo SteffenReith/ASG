@@ -51,13 +51,10 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
   }
 
   // Calculate p^n for an univariate polynomial (the rings version seems to be buggy)
-  private def univarPower(p : UnivariatePolynomialZp64, n : IntZ)(implicit field : GaloisField64) : UnivariatePolynomialZp64 = {
+  private def fieldPowerMod(p : UnivariatePolynomialZp64, n : IntZ)(implicit field : GaloisField64) : UnivariatePolynomialZp64 = {
 
     // We only accept positive exponents
-    assert(n >= 0, "ERROR: The exponent of univarPower has to be positive")
-
-    // Give some debug info
-    println(s"[LFSR] Compute (${p})^${n}")
+    assert(n >= 0, "ERROR: The exponent of fieldPowerMod has to be positive")
 
     // Init the result to 1
     var result = field.one
@@ -66,21 +63,21 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
     for (i <- (n.bitLength() - 1) to 0 by -1) {
 
       // Square the temporal value
-      result = result.square()
+      result = remainder(result.square(), field.getMinimalPolynomial())
 
       // If ith bit of exponent n is set 
       if (n.testBit(i)) {
 
         // Multiply p to the result
-        result = result.multiply(p)
+        result = remainder(result.multiply(p), field.getMinimalPolynomial())
 
       }
 
     }
 
     // Give some debug info
-    println(s"[LFSR] Calculation of (${p})^${n} completed")
-
+    println(s"[LFSR] Calculation of (${p})^${n} = ${result} completed")
+  
     // Return the result
     result
    
@@ -113,6 +110,9 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
 
     // A finite field having 2^degree elements
     implicit val field: GaloisField64 = GF(2, degree, "x")
+
+    // Report the reduction polynomial of the field
+    println(s"[LSFR] Use ${field.getMinimalPolynomial()} as reduction polynomial")
   
     // The given polynomial as field element
     val fieldPoly = ringPoly.setCoefficientRingFrom(field.one)
@@ -126,7 +126,7 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
     if (ordStr.isEmpty) println("None") else println(s"${ordStr}")
 
     // Test for all possible non-trivial sub-group whether poly generates a subgroup only
-    val subGroupTests = orders.par.map(univarPower(fieldPoly, _)).filter(x => (x == field.one))
+    val subGroupTests = orders.map(x => fieldPowerMod(fieldPoly, x)).filter(x => (x == field.one))
 
     // Check if we can reach the full period
     assert(subGroupTests.isEmpty, "ERROR: The connection polynomial has to be primitive (generate Z/(2^degree)Z[x])")
@@ -195,13 +195,13 @@ object LSFR {
                  genVhdlPkg                   = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/vhdl").generateVhdl(new LSFR("x^18 + x^7 + 1", trust = true)).printPruned()
+                 targetDirectory              = "gen/src/vhdl").generateVhdl(new LSFR("x^18 + x^9 + 1", trust = true)).printPruned()
 
     // Generate Verilog / Maybe mergeAsyncProcess = false helps verilator to avoid wrongly detected combinatorial loops
     SpinalConfig(mergeAsyncProcess            = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/verilog").generateVerilog(new LSFR("x^18 + x^7 + 1")).printPruned()
+                 targetDirectory              = "gen/src/verilog").generateVerilog(new LSFR("x^18 + x^9 + 1")).printPruned()
 
   }
 
