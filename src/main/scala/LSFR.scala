@@ -190,7 +190,6 @@ object LSFR {
 
   def main(args: Array[String]) : Unit = {
 
-
     // Generate VHDL (do not check the connection polynomial)
     SpinalConfig(mergeAsyncProcess            = true,
                  genVhdlPkg                   = true,
