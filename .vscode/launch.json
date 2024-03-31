@@ -7,6 +7,17 @@
         {
             "type": "scala",
             "request": "launch",
+            "name": "ASG",
+            "mainClass": "ASG",
+            "args": [
+                "--trust 1"
+            ],
+            "jvmOptions": [],
+            "env": {}
+        },
+        {
+            "type": "scala",
+            "request": "launch",
             "name": "LSFR",
             "mainClass": "LSFR",
             "args": [],

@@ -2,7 +2,8 @@
  * Author: Steffen Reith (Steffen.Reith@hs-rm.de)
  *
  * Create Date:  Thu Mar 16 14:24:06 CET 2023
- * Module Name:  LSFR - A linear shift feedback register (cf. A. Menezes et al., Handbook of Applied Cryptography, p. 196)
+ * Module Name:  LSFR - A linear shift feedback register 
+ *               (cf. A. Menezes et al., Handbook of Applied Cryptography, p. 196)
  * Project Name: ASG  - A simple random number generator
  *
  */
@@ -18,7 +19,7 @@ import syntax._
 
 import scala.collection.JavaConverters._
 
-class LSFR (polyString : String) extends Component {
+class LSFR (polyString : String, trust : Boolean = false) extends Component {
 
   val io = new Bundle {
 
@@ -50,13 +51,10 @@ class LSFR (polyString : String) extends Component {
   }
 
   // Calculate p^n for an univariate polynomial (the rings version seems to be buggy)
-  def univarPower(p : UnivariatePolynomialZp64, n : IntZ)(implicit field : GaloisField64) : UnivariatePolynomialZp64 = {
+  private def fieldPowerMod(p : UnivariatePolynomialZp64, n : IntZ)(implicit field : GaloisField64) : UnivariatePolynomialZp64 = {
 
     // We only accept positive exponents
-    assert(n >= 0, "ERROR: The exponent of univarPower has to be positive")
-
-    // Give some debug info
-    println(s"[LFSR]: Compute (${p})^${n}")
+    assert(n >= 0, "ERROR: The exponent of fieldPowerMod has to be positive")
 
     // Init the result to 1
     var result = field.one
@@ -65,18 +63,21 @@ class LSFR (polyString : String) extends Component {
     for (i <- (n.bitLength() - 1) to 0 by -1) {
 
       // Square the temporal value
-      result = result.square()
+      result = remainder(result.square(), field.getMinimalPolynomial())
 
       // If ith bit of exponent n is set 
       if (n.testBit(i)) {
 
-        // Mulitply p to the result
-        result = result.multiply(p)
+        // Multiply p to the result
+        result = remainder(result.multiply(p), field.getMinimalPolynomial())
 
       }
 
     }
 
+    // Give some debug info
+    println(s"[LFSR] Calculation of (${p})^${n} = ${result} completed")
+  
     // Return the result
     result
    
@@ -85,42 +86,56 @@ class LSFR (polyString : String) extends Component {
   // Create the ring Z/2Z[x]
   private val ring = UnivariateRingZp64(2, "x")
 
-  // Create the polynom in Z/2Z[x] to check irreducibility 
+  // Create the polynomial in Z/2Z[x] to check irreducibility
   private val ringPoly = ring(polyString)
 
-  // Check for irreducibility
-  assert(irreducibleQ(ringPoly), "ERROR: The connection polynomial has to be irreducible over Z/2Z") 
-
-  // Calculate the field size
-  val fieldSize = 2.pow(ringPoly.degree)
-
-  // A finite field having 2^degree elements
-  implicit val field = GF(2, ringPoly.degree, "x")
-  
-  // The given polynomial as field element
-  private val fieldPoly = ringPoly.setCoefficientRingFrom(field.one)
-  
-  // Calculate all orders of possible non-trivial subgroups of the multiplicative group
-  private val orders = calculateNonTrivialDivisors(fieldSize - 1)
-
-  // Give some information about the group orders to be checkt
-  private val ordStr = orders.mkString(", ")
-  print("[LSFR] Check possible subgroups of the following orders: ")
-  if (ordStr.isEmpty) println(" None") else println(s"${ordStr}")
-
-  // Test for all possible non-trivial sub-group whether poly generates a subgroup only
-  private val subGroupTests = orders.map(univarPower(fieldPoly, _)).filter(x => (x == field.one))
-
-  // Check if we can reach the full period
-  assert(subGroupTests.isEmpty, "ERROR: The connection polynomial has to be primitive (generate Z/(2^degree)Z[x])")
-
   // Calculate the maximal possible period and the degree of the used polynomial
-  private val degree = fieldPoly.degree
+  private val degree = ringPoly.degree
   private val period = 2.pow(degree) - 1
 
-  // Give some information about the period
-  print("[LSFR] The given polynomial is primitive! ")
-  println("The full period 2^" + degree + " - 1 = " + period + " can be reached!")
+  // Check if we trust the connection polynomial 
+  if (trust) {
+  
+    // Give a debug message about the trust mode
+    println("[LSFR]: We are in trust mode!")
+    println(s"The properties of the provided connection polynomial ${polyString} is _not_ checked!")
+
+  } else {
+
+    // Check for irreducibility
+    assert(irreducibleQ(ringPoly), "ERROR: The connection polynomial has to be irreducible over Z/2Z") 
+
+    // Calculate the field size
+    val fieldSize = 2.pow(degree)
+
+    // A finite field having 2^degree elements
+    implicit val field: GaloisField64 = GF(2, degree, "x")
+
+    // Report the reduction polynomial of the field
+    println(s"[LSFR] Use ${field.getMinimalPolynomial()} as reduction polynomial")
+  
+    // The given polynomial as field element
+    val fieldPoly = ringPoly.setCoefficientRingFrom(field.one)
+  
+    // Calculate all orders of possible non-trivial subgroups of the multiplicative group
+    val orders = calculateNonTrivialDivisors(fieldSize - 1)
+
+    // Give some information about the group orders which has to be checked
+    val ordStr = orders.mkString(", ")
+    print("[LSFR] Check possible subgroups of the following orders: ")
+    if (ordStr.isEmpty) println("None") else println(s"${ordStr}")
+
+    // Test for all possible non-trivial sub-group whether poly generates a subgroup only
+    val subGroupTests = orders.map(x => fieldPowerMod(fieldPoly, x)).filter(x => (x == field.one))
+
+    // Check if we can reach the full period
+    assert(subGroupTests.isEmpty, "ERROR: The connection polynomial has to be primitive (generate Z/(2^degree)Z[x])")
+
+    // Give some information about the period
+    print("[LSFR] The given polynomial is primitive! ")
+    println("The full period 2^" + degree + " - 1 = " + period + " can be reached!")
+
+  }
 
   // Generate a list of taps and ignore the final +1 monom (it exists since poly is irreducible)
   private val activeTaps = ringPoly.exponents().toArray().dropRight(1)
@@ -157,10 +172,10 @@ class LSFR (polyString : String) extends Component {
   fsRegN := genBit ## fsReg(fsReg.high downto 1)
 
   // Get the period of the LSFR
-  def getPeriod() = period
+  def getPeriod = period
   
   // Get the degree of the used polynomial
-  def getDegree() = degree
+  def getDegree = degree
 }
 
 object LSFR {
@@ -175,19 +190,18 @@ object LSFR {
 
   def main(args: Array[String]) : Unit = {
 
-
-    // Generate VHDL
+    // Generate VHDL (do not check the connection polynomial)
     SpinalConfig(mergeAsyncProcess            = true,
                  genVhdlPkg                   = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/vhdl").generateVhdl(new LSFR("x ^ 51 + x ^ 6 + x ^ 3 + x + 1")).printPruned()
+                 targetDirectory              = "gen/src/vhdl").generateVhdl(new LSFR("x^18 + x^9 + 1", trust = true)).printPruned()
 
     // Generate Verilog / Maybe mergeAsyncProcess = false helps verilator to avoid wrongly detected combinatorial loops
     SpinalConfig(mergeAsyncProcess            = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/verilog").generateVerilog(new LSFR("x ^ 51 + x ^ 6 + x ^ 3 + x + 1")).printPruned()
+                 targetDirectory              = "gen/src/verilog").generateVerilog(new LSFR("x^18 + x^9 + 1")).printPruned()
 
   }
 
