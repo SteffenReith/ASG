@@ -4,13 +4,33 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Simulation(Verilator)",
+            "label": "Simulation (Verilator)",
             "type": "shell",
             "command": "sbt \" Test / run \"",
             "problemMatcher": [],
             "group": {
                 "kind": "build",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "Generate ASG (Trusted)",
+            "type": "shell",
+            "command": "sbt \"runMain ASG --trust 1\"",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
                 "isDefault": true
+            }
+        },
+        {
+            "label": "Generate ASG (Untrusted)",
+            "type": "shell",
+            "command": "sbt \"runMain ASG --trust 0\"",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
             }
         }
     ]
