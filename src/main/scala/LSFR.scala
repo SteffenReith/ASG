@@ -71,7 +71,7 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
       // If ith bit of exponent n is set 
       if (n.testBit(i)) {
 
-        // Mulitply p to the result
+        // Multiply p to the result
         result = result.multiply(p)
 
       }
@@ -89,7 +89,7 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
   // Create the ring Z/2Z[x]
   private val ring = UnivariateRingZp64(2, "x")
 
-  // Create the polynom in Z/2Z[x] to check irreducibility 
+  // Create the polynomial in Z/2Z[x] to check irreducibility
   private val ringPoly = ring(polyString)
 
   // Calculate the maximal possible period and the degree of the used polynomial
@@ -112,7 +112,7 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
     val fieldSize = 2.pow(degree)
 
     // A finite field having 2^degree elements
-    implicit val field = GF(2, degree, "x")
+    implicit val field: GaloisField64 = GF(2, degree, "x")
   
     // The given polynomial as field element
     val fieldPoly = ringPoly.setCoefficientRingFrom(field.one)
@@ -172,10 +172,10 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
   fsRegN := genBit ## fsReg(fsReg.high downto 1)
 
   // Get the period of the LSFR
-  def getPeriod() = period
+  def getPeriod = period
   
   // Get the degree of the used polynomial
-  def getDegree() = degree
+  def getDegree = degree
 }
 
 object LSFR {

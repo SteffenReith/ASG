@@ -16,10 +16,6 @@ import scopt.OptionParser
 
 import spinal.core._
 
-import cc.redberry.rings.bigint.BigInteger
-import cc.redberry.rings.primes.BigPrimes._
-import cc.redberry.rings.poly.FiniteField
-import cc.redberry.rings.poly.PolynomialMethods._
 import cc.redberry.rings.scaladsl._
 import syntax._
 
@@ -43,15 +39,15 @@ class ASG (R1PolyString : String,
 
   // Create LSFR R1
   println("[ASG]: Create LSFR R1")
-  val R1 = new LSFR(R1PolyString, trust)
+  private val R1 = new LSFR(R1PolyString, trust)
 
   // Create LSFR R2
   println("[ASG]: Create LSFR R2")
-  val R2 = new LSFR(R2PolyString, trust)
+  private val R2 = new LSFR(R2PolyString, trust)
 
   // Create LSFR R3
   println("[ASG]: Create LSFR R3")
-  val R3 = new LSFR(R3PolyString, trust)
+  private val R3 = new LSFR(R3PolyString, trust)
 
   // Create the enable logic
   R1.io.enable := io.enable
@@ -72,7 +68,7 @@ class ASG (R1PolyString : String,
   io.newBit := R2.io.newBit ^ R3.io.newBit
 
   // Check whether the length of R2 and R3 are co-prime
-  if (R2.getPeriod.gcd(R3.getPeriod()) > 1) {
+  if (R2.getPeriod.gcd(R3.getPeriod) > 1) {
 
     // Give a warning about not reaching the full period
     println("[ASG]: WARNING - The choice of your parameters will not result in the full period length!")
@@ -80,7 +76,7 @@ class ASG (R1PolyString : String,
   }
 
   // Give some information about the expected cycle length
-  println(s"[ASG]: The expected period length is 2^${R1.getDegree}*${R2.getPeriod}*${R3.getPeriod} = ${2.pow(R1.getDegree) * R2.getPeriod * R3.getPeriod}")  
+  println(s"[ASG]: The expected period length is 2^${R1.getDegree}*${R2.getPeriod}*${R3.getPeriod} = ${2.pow(R1.getDegree) * R2.getPeriod * R3.getPeriod}")
 
 }
 
