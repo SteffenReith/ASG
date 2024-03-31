@@ -57,7 +57,7 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
     assert(n >= 0, "ERROR: The exponent of univarPower has to be positive")
 
     // Give some debug info
-    println(s"[LFSR]: Compute (${p})^${n}")
+    println(s"[LFSR] Compute (${p})^${n}")
 
     // Init the result to 1
     var result = field.one
@@ -79,7 +79,7 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
     }
 
     // Give some debug info
-    println(s"[LFSR]: Calculation of (${p})^${n} completed")
+    println(s"[LFSR] Calculation of (${p})^${n} completed")
 
     // Return the result
     result
@@ -191,18 +191,18 @@ object LSFR {
   def main(args: Array[String]) : Unit = {
 
 
-    // Generate VHDL
+    // Generate VHDL (do not check the connection polynomial)
     SpinalConfig(mergeAsyncProcess            = true,
                  genVhdlPkg                   = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/vhdl").generateVhdl(new LSFR("x ^ 51 + x ^ 6 + x ^ 3 + x + 1")).printPruned()
+                 targetDirectory              = "gen/src/vhdl").generateVhdl(new LSFR("x^18 + x^7 + 1", trust = true)).printPruned()
 
     // Generate Verilog / Maybe mergeAsyncProcess = false helps verilator to avoid wrongly detected combinatorial loops
     SpinalConfig(mergeAsyncProcess            = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/verilog").generateVerilog(new LSFR("x ^ 51 + x ^ 6 + x ^ 3 + x + 1")).printPruned()
+                 targetDirectory              = "gen/src/verilog").generateVerilog(new LSFR("x^18 + x^7 + 1")).printPruned()
 
   }
 
