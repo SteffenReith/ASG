@@ -2,11 +2,17 @@
  * Author: Steffen Reith (Steffen.Reith@hs-rm.de)
  *
  * Create Date:  Thu Mar 16 14:24:06 CET 2023 
- * Module Name:  ASG - A simple alternating step generator (cf. A. Menezes et al., Handbook of Applied Cryptography, p. 209)
+ * Module Name:  ASG - A simple alternating step generator 
+ *               (cf. A. Menezes et al., Handbook of Applied Cryptography, p. 209)
  * Project Name: ASG - A simple random number generator 
- * Remark:       This is only a demo. Since R1 doesn't deliver a de Bruijn sequence (and we did not padding for 
- *               making one the period is not guaranteed! Hence the given period is only a rough and not reliable assumption
+ * Remark:       This is only a demo! Since R1 doesn't deliver a de Bruijn sequence 
+ *               (and we didn't pad for making one) the period is not guaranteed! 
+ *               Hence the given period is only a rough and not reliable assumption.
  */
+
+import sys.exit
+
+import scopt.OptionParser
 
 import spinal.core._
 
@@ -19,7 +25,8 @@ import syntax._
 
 class ASG (R1PolyString : String,
            R2PolyString : String,
-           R3PolyString : String) extends Component {
+           R3PolyString : String,
+           trust        : Boolean = false) extends Component {
 
   val io = new Bundle {
 
@@ -36,15 +43,15 @@ class ASG (R1PolyString : String,
 
   // Create LSFR R1
   println("[ASG]: Create LSFR R1")
-  val R1 = new LSFR(R1PolyString)
+  val R1 = new LSFR(R1PolyString, trust)
 
   // Create LSFR R2
   println("[ASG]: Create LSFR R2")
-  val R2 = new LSFR(R2PolyString)
+  val R2 = new LSFR(R2PolyString, trust)
 
   // Create LSFR R3
   println("[ASG]: Create LSFR R3")
-  val R3 = new LSFR(R3PolyString)
+  val R3 = new LSFR(R3PolyString, trust)
 
   // Create the enable logic
   R1.io.enable := io.enable
@@ -89,18 +96,46 @@ object ASG {
 
   def main(args: Array[String]) : Unit = {
 
+    // Create a new scopt parser
+    val parser = new OptionParser[ArgsConfig]("Alternating Step Generator") {
+
+      // A simple header for the help text
+      head("ASG - A simple alternating step generator to produce pseudo-random bits", "")
+
+      // Option to trust the polynomails (avoid the time consuming test to check of primitiveness)
+      opt[Boolean]("trust").action {(v,c) => c.copy(trustArg = Some(v)) }
+                           .text("Trust the provided connection polynomials")
+
+      // Help option
+      help("help").text("print this text")
+
+    }
+
+    // Get the argument values
+    val (trust) = parser.parse(args, ArgsConfig(trustArg = Some(false))).map {cfg =>
+
+      // Return the arguments
+      (cfg.trustArg.get)
+
+    } getOrElse {
+
+      // Terminate program with error-code (wrong argument / option)
+      exit(1)
+
+    }
+
     // Generate VHDL
     SpinalConfig(mergeAsyncProcess            = true,
                  genVhdlPkg                   = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/vhdl").generateVhdl(new ASG("x^3+x^2+1", "x^4+x^3+1", "x^5+x^4+x^3+x+1")).printPruned()
+                 targetDirectory              = "gen/src/vhdl").generateVhdl(new ASG("x^3+x^2+1", "x^4+x^3+1", "x^5+x^4+x^3+x+1", trust)).printPruned()
 
     // Generate Verilog / Maybe mergeAsyncProcess = false helps verilator to avoid wrongly detected combinatorial loops
     SpinalConfig(mergeAsyncProcess            = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/verilog").generateVerilog(new ASG("x^3+x^2+1", "x^4+x^3+1", "x^5+x^4+x^3+x+1")).printPruned()
+                 targetDirectory              = "gen/src/verilog").generateVerilog(new ASG("x^3+x^2+1", "x^4+x^3+1", "x^5+x^4+x^3+x+1", trust)).printPruned()
 
   }
 
