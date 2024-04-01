@@ -36,7 +36,7 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
   // Calculate all non-trivial divisors of num (e.g. calculateNonTrivialDivisors(6) == List(2,3))
   private def calculateNonTrivialDivisors(num : IntZ) = {
 
-    // Convert the list representation into an integer
+    // Convert the list representation of an divisor into an integer
     def convertToNum(l : List[IntZ]) : IntZ = l.fold(Z(1))((x, y) => x * y)
 
     // Calculate a list of all prime factors of num 
