@@ -1,5 +1,6 @@
 # Some Literature about primitive polynomials
 
+- A short definition and an example of primitive polynomials is given in Jürgen Bierbrauer, Introduction to Coding Theory, second edition, CRC Press, 2017 in Chapter 3.2 
 - A [simple explaination of primitive polynomials](https://cs.stackexchange.com/questions/62759/check-if-a-given-polynomial-is-primitive) with a hint to [Sage](https://www.sagemath.org/)
 - [Some Mathematica code](https://forums.wolfram.com/mathgroup/archive/2005/Apr/msg00268.html)
 - Some information on [Wolfram Mathworld](https://mathworld.wolfram.com/PrimitivePolynomial.html)
