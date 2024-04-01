@@ -5,9 +5,10 @@
  * Module Name:  ASG - A simple alternating step generator 
  *               (cf. A. Menezes et al., Handbook of Applied Cryptography, p. 209)
  * Project Name: ASG - A simple random number generator 
- * Remark:       This is only a demo! Since R1 doesn't deliver a de Bruijn sequence 
- *               (and we didn't pad for making one) the period is not guaranteed! 
- *               Hence the given period is only a rough and not reliable assumption.
+ * Remark:       This is only a demo for SpinalHDLs possibilies! Since R1 doesn't 
+ *               deliver a de Bruijn sequence (and we didn't pad for making one) 
+ *               the period is not guaranteed! Hence the given period is only a 
+ *               rough and not reliable assumption.
  */
 
 import sys.exit
@@ -76,7 +77,7 @@ class ASG (R1PolyString : String,
   }
 
   // Give some information about the expected cycle length
-  println(s"[ASG]: The expected period length is 2^${R1.getDegree}*${R2.getPeriod}*${R3.getPeriod} = ${2.pow(R1.getDegree) * R2.getPeriod * R3.getPeriod}")
+  println(s"[ASG]: The expected period length is (2^${R1.getDegree}-1)*${R2.getPeriod}*${R3.getPeriod} = ${(2.pow(R1.getDegree) - 1) * R2.getPeriod * R3.getPeriod}")
 
 }
 
@@ -125,13 +126,13 @@ object ASG {
                  genVhdlPkg                   = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/vhdl").generateVhdl(new ASG("x^3+x^2+1", "x^4+x^3+1", "x^5+x^4+x^3+x+1", trust)).printPruned()
+                 targetDirectory              = "gen/src/vhdl").generateVhdl(new ASG("x^31+x^3+1", "x^127+x^1+1", "x^89+x^38+1", trust)).printPruned()
 
     // Generate Verilog / Maybe mergeAsyncProcess = false helps verilator to avoid wrongly detected combinatorial loops
     SpinalConfig(mergeAsyncProcess            = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/verilog").generateVerilog(new ASG("x^3+x^2+1", "x^4+x^3+1", "x^5+x^4+x^3+x+1", trust)).printPruned()
+                 targetDirectory              = "gen/src/verilog").generateVerilog(new ASG("x^31+x^3+1", "x^127+x^1+1", "x^89+x^38+1", trust)).printPruned()
 
   }
 
