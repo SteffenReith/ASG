@@ -50,48 +50,17 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
 
   }
 
-  // Calculate p^n for an univariate polynomial (the rings version seems to be buggy)
-  private def fieldPowerMod(p : UnivariatePolynomialZp64, n : IntZ)(implicit field : GaloisField64) : UnivariatePolynomialZp64 = {
-
-    // We only accept positive exponents
-    assert(n >= 0, "ERROR: The exponent of fieldPowerMod has to be positive")
-
-    // Init the result to 1
-    var result = field.one
-
-    // For all bit of the exponent n
-    for (i <- (n.bitLength() - 1) to 0 by -1) {
-
-      // Square the temporal value
-      result = remainder(result.square(), field.getMinimalPolynomial())
-
-      // If ith bit of exponent n is set 
-      if (n.testBit(i)) {
-
-        // Multiply p to the result
-        result = remainder(result.multiply(p), field.getMinimalPolynomial())
-
-      }
-
-    }
-
-    // Give some debug info
-    println(s"[LFSR] Calculation of (${p})^${n} = ${result} completed")
-  
-    // Return the result
-    result
-   
-  }
-
   // Create the ring Z/2Z[x]
   private val ring = UnivariateRingZp64(2, "x")
 
-  // Create the polynomial in Z/2Z[x] to check irreducibility
+  // Create the polynomial in Z/2Z[x]
   private val ringPoly = ring(polyString)
 
-  // Calculate the maximal possible period and the degree of the used polynomial
-  private val degree = ringPoly.degree
-  private val period = 2.pow(degree) - 1
+  // Calculate the degree if the given connection polynom
+  private val degree = ringPoly.degree()
+
+  // Calculate the size of the multiplicative group of the field (Z/2Z[x])/(ringPoly) iff ringPoly is irreducible
+  private val multOrder = 2.pow(degree) - 1
 
   // Check if we trust the connection polynomial 
   if (trust) {
@@ -102,38 +71,27 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
 
   } else {
 
-    // Check for irreducibility
-    assert(irreducibleQ(ringPoly), "ERROR: The connection polynomial has to be irreducible over Z/2Z") 
+    // Check for irreducibility over Z/2Z
+    assert(irreducibleQ(ringPoly), "ERROR: The connection polynomial has to be irreducible over Z/2Z!") 
 
-    // Calculate the field size
-    val fieldSize = 2.pow(degree)
-
-    // A finite field having 2^degree elements
-    implicit val field: GaloisField64 = GF(2, degree, "x")
-
-    // Report the reduction polynomial of the field
-    println(s"[LSFR] Use ${field.getMinimalPolynomial()} as reduction polynomial")
+    // Calculate all powers x^d where d is a non-trival divider of multOrder as a string
+    val strPowersOfX = calculateNonTrivialDivisors(multOrder).map(y => "x^" + y.toString)
   
-    // The given polynomial as field element
-    val fieldPoly = ringPoly.setCoefficientRingFrom(field.one)
-  
-    // Calculate all orders of possible non-trivial subgroups of the multiplicative group
-    val orders = calculateNonTrivialDivisors(fieldSize - 1)
+    // Convert the strings representations to real ring elements
+    val ringPowersOfX = strPowersOfX.map(y => ring.parse(y))
 
-    // Give some information about the group orders which has to be checked
-    val ordStr = orders.mkString(", ")
-    print("[LSFR] Check possible subgroups of the following orders: ")
-    if (ordStr.isEmpty) println("None") else println(s"${ordStr}")
+    // Reduce the powers of X mod ringPoly
+    val reducedPowersOfX = ringPowersOfX.map(y => remainder(y, ringPoly))
 
-    // Test for all possible non-trivial sub-group whether poly generates a subgroup only
-    val subGroupTests = orders.map(x => fieldPowerMod(fieldPoly, x)).filter(x => (x == field.one))
+    // If ringPoly is primitive x generates the field, hence check whether x^j==1 
+    val powerToOnes = reducedPowersOfX.filter(y => (y == ring.one))
 
-    // Check if we can reach the full period
-    assert(subGroupTests.isEmpty, "ERROR: The connection polynomial has to be primitive (generate Z/(2^degree)Z[x])")
-
+    // If x^j==1 then x only generates a non-trivial subgroup of the field, hence ringPoly is not primitive
+    assert(powerToOnes.length == 0, "ERROR: The connection polynomial has to be primitive over Z/2Z!")
+    
     // Give some information about the period
     print("[LSFR] The given polynomial is primitive! ")
-    println("The full period 2^" + degree + " - 1 = " + period + " can be reached!")
+    println("The full period 2^" + degree + " - 1 = " + multOrder + " can be reached!")
 
   }
 
@@ -145,14 +103,14 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
   println(activeTaps.mkString("(",",",")"))
 
   // Some debug message
-  println("[LSFR] Create a register of width " + ringPoly.degree())
+  println("[LSFR] Create a register of width " + degree)
 
   // Init the register with 0 such that the register generates no random bits
-  private val fsRegN = Bits(ringPoly.degree() bits)
+  private val fsRegN = Bits(degree bits)
   private val fsReg = RegNextWhen(fsRegN, io.enable) init(0)
 
   // Select the tap-bits from register
-  private val taps = activeTaps.map(x => fsReg(ringPoly.degree() - x))
+  private val taps = activeTaps.map(x => fsReg(degree - x))
 
   // xor all tap-bits together
   private val genBit = taps.reduce((x,y) => x ^ y)
@@ -172,7 +130,7 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
   fsRegN := genBit ## fsReg(fsReg.high downto 1)
 
   // Get the period of the LSFR
-  def getPeriod = period
+  def getPeriod = multOrder
   
   // Get the degree of the used polynomial
   def getDegree = degree
@@ -195,13 +153,13 @@ object LSFR {
                  genVhdlPkg                   = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/vhdl").generateVhdl(new LSFR("x^18 + x^9 + 1", trust = true)).printPruned()
+                 targetDirectory              = "gen/src/vhdl").generateVhdl(new LSFR("x^18 + x^7 + 1", trust = true)).printPruned()
 
     // Generate Verilog / Maybe mergeAsyncProcess = false helps verilator to avoid wrongly detected combinatorial loops
     SpinalConfig(mergeAsyncProcess            = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/verilog").generateVerilog(new LSFR("x^18 + x^9 + 1")).printPruned()
+                 targetDirectory              = "gen/src/verilog").generateVerilog(new LSFR("x^18 + x^7 + 1")).printPruned()
 
   }
 
