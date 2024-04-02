@@ -10,9 +10,7 @@
 
 import spinal.core._
 
-import cc.redberry.rings.bigint.BigInteger
 import cc.redberry.rings.primes.BigPrimes._
-import cc.redberry.rings.poly.FiniteField
 import cc.redberry.rings.poly.PolynomialMethods._
 import cc.redberry.rings.scaladsl._
 import syntax._
@@ -36,10 +34,10 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
   // Calculate all non-trivial divisors of num (e.g. calculateNonTrivialDivisors(6) == List(2,3))
   private def calculateNonTrivialDivisors(num : IntZ) = {
 
-    // Convert the list representation of an divisor into an integer
+    // Convert the list representation of a divisor into an integer
     def convertToNum(l : List[IntZ]) : IntZ = l.fold(Z(1))((x, y) => x * y)
 
-    // Calculate a list of all prime factors of num 
+    // Calculate a list of all prime factors of num
     val p = primeFactors(num).asScala
 
     // Calculate all non trivial divisors represented as a list of primes
@@ -87,7 +85,7 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
     val powerToOnes = reducedPowersOfX.filter(y => (y == ring.one))
 
     // If x^j==1 then x only generates a non-trivial subgroup of the field, hence ringPoly is not primitive
-    assert(powerToOnes.length == 0, "ERROR: The connection polynomial has to be primitive over Z/2Z!")
+    assert(powerToOnes.isEmpty, "ERROR: The connection polynomial has to be primitive over Z/2Z!")
     
     // Give some information about the period
     print("[LSFR] The given polynomial is primitive! ")
@@ -148,18 +146,21 @@ object LSFR {
 
   def main(args: Array[String]) : Unit = {
 
+    // Specification of the used connection polynomial
+    val connPolyStr = "x^18 + x^7 + 1"
+
     // Generate VHDL (do not check the connection polynomial)
     SpinalConfig(mergeAsyncProcess            = true,
                  genVhdlPkg                   = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/vhdl").generateVhdl(new LSFR("x^18 + x^7 + 1", trust = true)).printPruned()
+                 targetDirectory              = "gen/src/vhdl").generateVhdl(new LSFR(connPolyStr, trust = true)).printPruned()
 
     // Generate Verilog / Maybe mergeAsyncProcess = false helps verilator to avoid wrongly detected combinatorial loops
     SpinalConfig(mergeAsyncProcess            = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/verilog").generateVerilog(new LSFR("x^18 + x^7 + 1")).printPruned()
+                 targetDirectory              = "gen/src/verilog").generateVerilog(new LSFR(connPolyStr)).printPruned()
 
   }
 

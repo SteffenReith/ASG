@@ -5,7 +5,7 @@
  * Module Name:  ASG - A simple alternating step generator 
  *               (cf. A. Menezes et al., Handbook of Applied Cryptography, p. 209)
  * Project Name: ASG - A simple random number generator 
- * Remark:       This is only a demo for SpinalHDLs possibilies! Since R1 doesn't 
+ * Remark:       This is only a demo for SpinalHDLs possibilities! Since R1 doesn't
  *               deliver a de Bruijn sequence (and we didn't pad for making one) 
  *               the period is not guaranteed! Hence the given period is only a 
  *               rough and not reliable assumption.
@@ -91,6 +91,11 @@ object ASG {
   // Suppose that the design runs with 100 MHz
   private val globalFrequency = FixedFrequency(100 MHz)
 
+  // Specification of the connection polynomials
+  private val connPolyStrR1 = "x^31+x^3+1"
+  private val connPolyStrR2 = "x^127+x^1+1"
+  private val connPolyStrR3 = "x^89+x^38+1"
+
   def main(args: Array[String]) : Unit = {
 
     // Create a new scopt parser
@@ -99,7 +104,7 @@ object ASG {
       // A simple header for the help text
       head("ASG - A simple alternating step generator to produce pseudo-random bits", "")
 
-      // Option to trust the polynomails (avoid the time consuming test to check of primitiveness)
+      // Option to trust the polynomials (avoid the time consuming test to check of primitiveness)
       opt[Boolean]("trust").action {(v,c) => c.copy(trustArg = Some(v)) }
                            .text("Trust the provided connection polynomials")
 
@@ -121,18 +126,22 @@ object ASG {
 
     }
 
-    // Generate VHDL
+    // Generate VHDL (do _not_ check the connection polynomials, will be done when generating Verilog)
     SpinalConfig(mergeAsyncProcess            = true,
                  genVhdlPkg                   = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/vhdl").generateVhdl(new ASG("x^31+x^3+1", "x^127+x^1+1", "x^89+x^38+1", trust)).printPruned()
+                 targetDirectory              = "gen/src/vhdl").generateVhdl(new ASG(connPolyStrR1,
+                                                                                     connPolyStrR2,
+                                                                                     connPolyStrR3, trust = trust)).printPruned()
 
     // Generate Verilog / Maybe mergeAsyncProcess = false helps verilator to avoid wrongly detected combinatorial loops
     SpinalConfig(mergeAsyncProcess            = true,
                  defaultConfigForClockDomains = globalClockConfig,
                  defaultClockDomainFrequency  = globalFrequency,
-                 targetDirectory              = "gen/src/verilog").generateVerilog(new ASG("x^31+x^3+1", "x^127+x^1+1", "x^89+x^38+1", trust)).printPruned()
+                 targetDirectory              = "gen/src/verilog").generateVerilog(new ASG(connPolyStrR1,
+                                                                                           connPolyStrR2,
+                                                                                           connPolyStrR3, trust)).printPruned()
 
   }
 
