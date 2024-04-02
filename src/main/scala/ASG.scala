@@ -69,7 +69,7 @@ class ASG (R1PolyString : String,
   io.newBit := R2.io.newBit ^ R3.io.newBit
 
   // Check whether the length of R2 and R3 are co-prime
-  if (R2.getPeriod.gcd(R3.getPeriod) > 1) {
+  if (R2.getMaxPeriod.gcd(R3.getMaxPeriod) > 1) {
 
     // Give a warning about not reaching the full period
     println("[ASG]: WARNING - The choice of your parameters will not result in the full period length!")
@@ -77,7 +77,13 @@ class ASG (R1PolyString : String,
   }
 
   // Give some information about the expected cycle length
-  println(s"[ASG]: The expected period length is (2^${R1.getDegree}-1)*${R2.getPeriod}*${R3.getPeriod} = ${(2.pow(R1.getDegree) - 1) * R2.getPeriod * R3.getPeriod}")
+  println(s"[ASG]: The expected period length is (2^${R1.getDegree}-1)*${R2.getMaxPeriod}*${R3.getMaxPeriod} = ${(2.pow(R1.getDegree) - 1) * R2.getMaxPeriod * R3.getMaxPeriod}")
+
+  // Provide access to the bit-length of the internal shift-registers
+  def getRegisterLength   = (R1.getDegree, R2.getDegree, R3.getDegree)
+  def getR1RegisterLength = R1.getDegree
+  def getR2RegisterLength = R2.getDegree
+  def getR3RegisterLength = R3.getDegree
 
 }
 

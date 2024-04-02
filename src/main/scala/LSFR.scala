@@ -60,6 +60,12 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
   // Calculate the size of the multiplicative group of the field (Z/2Z[x])/(ringPoly) iff ringPoly is irreducible
   private val multOrder = 2.pow(degree) - 1
 
+  // Get the period of the LSFR
+  def getMaxPeriod = multOrder
+  
+  // Get the degree of the used polynomial
+  def getDegree = degree
+
   // Check if we trust the connection polynomial 
   if (trust) {
   
@@ -127,11 +133,6 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
   // Shift the register
   fsRegN := genBit ## fsReg(fsReg.high downto 1)
 
-  // Get the period of the LSFR
-  def getPeriod = multOrder
-  
-  // Get the degree of the used polynomial
-  def getDegree = degree
 }
 
 object LSFR {
