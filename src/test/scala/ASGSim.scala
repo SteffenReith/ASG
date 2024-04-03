@@ -71,7 +71,7 @@ object ASGSim {
       printReport(s"Init R1 (cycles: ${cycles})\n")
       dut.io.loadIt #= 0x01
       dut.io.enable #= true
-      dut.io.load   #= true
+      dut.io.load   #= false
       dut.clockDomain.waitSampling(lenR1)
 
       // Feed B"101" to R1
@@ -92,10 +92,10 @@ object ASGSim {
       printReport(s"Init R2 (cycles: ${cycles})\n")
       dut.io.loadIt #= 0x02
       dut.io.enable #= true
-      dut.io.load   #= true
+      dut.io.load   #= false
       dut.clockDomain.waitSampling(lenR2)
 
-      // Feed B"010" to R1
+      // Feed B"010" to R2
       dut.io.loadIt #= 0x02
       dut.io.enable #= true
       dut.io.load   #= false
@@ -113,10 +113,10 @@ object ASGSim {
       printReport(s"Init R3 (cycles: ${cycles})\n")
       dut.io.loadIt #= 0x03
       dut.io.enable #= true
-      dut.io.load   #= true
+      dut.io.load   #= false
       dut.clockDomain.waitSampling(lenR3)
 
-      // Feed B"111" to R1
+      // Feed B"111" to R3
       dut.io.loadIt #= 0x03
       dut.io.enable #= true
       dut.io.load   #= true
@@ -130,11 +130,15 @@ object ASGSim {
       dut.io.load   #= true
       dut.clockDomain.waitSampling()
 
-      // Simulate the ASG for 100 cycles
+      // Simulate the ASG for 10000 cycles
       printReport(s"Start simulation of ASG (cycles: ${cycles})\n")
       dut.io.enable #= true
       dut.io.loadIt #= 0x00
-      dut.clockDomain.waitSampling(100)
+      dut.clockDomain.waitSampling(10000)
+
+      // Disable the ASG
+      dut.io.enable #= false
+      dut.clockDomain.waitSampling(10)
 
     }
 
