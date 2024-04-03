@@ -1,0 +1,39 @@
+[*]
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Wed Apr  3 10:13:42 2024
+[*]
+[dumpfile] "/Users/streit/src/scala/ASG/gen/sim/ASG/test/wave.vcd"
+[dumpfile_mtime] "Wed Apr  3 10:11:48 2024"
+[dumpfile_size] 3305164
+[savefile] "/Users/streit/src/scala/ASG/gen/Simple.gtkw"
+[timestart] 68687
+[size] 2672 1112
+[pos] -248 14
+*-9.000000 94620 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] TOP.
+[treeopen] TOP.ASG.
+[sst_width] 193
+[signals_width] 452
+[sst_expanded] 1
+[sst_vpaned_height] 348
+@29
+[color] 3
+TOP.ASG.clk
+@22
+TOP.ASG.R1.fsReg[30:0]
+TOP.ASG.R2.fsReg[126:0]
+TOP.ASG.R3.fsReg[88:0]
+@28
+TOP.ASG.load
+TOP.ASG.loadIt[1:0]
+[color] 1
+TOP.ASG.newBit
+TOP.ASG.R1_newBit
+TOP.ASG.R2_newBit
+TOP.ASG.R3_newBit
+TOP.ASG.enable
+TOP.ASG.R1_enable
+TOP.ASG.R2_enable
+TOP.ASG.R3_enable
+[pattern_trace] 1
+[pattern_trace] 0
