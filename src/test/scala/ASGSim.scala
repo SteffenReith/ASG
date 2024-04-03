@@ -7,6 +7,7 @@
  */
 
 import scala.sys.exit
+import scala.util.Random
 
 import spinal.lib._
 
@@ -21,6 +22,9 @@ object ASGSim {
 
     // Period used for the simulation
     val simPeriod = 10
+
+    // Number of bit to generate after loading R1, R2 and R3
+    val numberOfBits = 100000
 
     // Make a synchronous reset and use the rising edge for the clock
     val globalClockConfig = ClockDomainConfig(clockEdge        = RISING,
@@ -46,7 +50,7 @@ object ASGSim {
              .withWave
              .withTimeScale(1 ns)
              .withTimePrecision(100 ps)
-             .compile(new ASG(connPolyStrR1, connPolyStrR2, connPolyStrR3, false)).doSim(seed = 1) { dut =>
+             .compile(new ASG(connPolyStrR1, connPolyStrR2, connPolyStrR3, false)).doSim(seed = Random.nextInt) { dut =>
 
       // Get the sized of the used registers
       val (lenR1, lenR2, lenR3) = dut.getRegisterLength
@@ -130,12 +134,34 @@ object ASGSim {
       dut.io.load   #= true
       dut.clockDomain.waitSampling()
 
-      // Simulate the ASG for 10000 cycles
+      // Give some information about the simulation
       printReport(s"Start simulation of ASG (cycles: ${cycles})\n")
-      dut.io.enable #= true
-      dut.io.loadIt #= 0x00
-      dut.clockDomain.waitSampling(10000)
+    
+      // Counts the number of generates 1 bits
+      var ones = 0
 
+      // Remember the start time in cycles
+      val startCycles = cycles
+
+      // Do 'numberOfBits' simulation steps
+      for (i <- 1 to numberOfBits) {
+
+        // Generate another bit
+        dut.io.enable #= true
+        dut.io.loadIt #= 0x00
+        dut.clockDomain.waitSampling()
+     
+        // Check for 1 bit and sum up
+        if (dut.io.newBit.toBoolean) ones = ones + 1
+  
+      }
+
+      // Remember the end time in cycles
+      val endCycles = cycles
+
+      // Print a report about the ratio between 1 and 0 (should be about 0.5)
+      printReport(s"${ones.toDouble / (endCycles.toDouble - startCycles.toDouble) * 100.0} percent of ${numberOfBits} bits were 1\n")
+    
       // Disable the ASG
       dut.io.enable #= false
       dut.clockDomain.waitSampling(10)
