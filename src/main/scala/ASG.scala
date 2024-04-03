@@ -102,7 +102,7 @@ object ASG {
   // Suppose that the design runs with 100 MHz
   private val globalFrequency = FixedFrequency(100 MHz)
 
-  // Specification of the connection polynomials
+  // Specification of the connection polynomials (used x^63+x+1 for TT06 as R2)
   private val connPolyStrR1 = "x^31+x^3+1"
   private val connPolyStrR2 = "x^127+x^1+1"
   private val connPolyStrR3 = "x^89+x^38+1"
