@@ -50,15 +50,20 @@ class ASG (R1PolyString : String,
   println("[ASG]: Create LSFR R3")
   private val R3 = new LSFR(R3PolyString, trust)
 
-  // Create the enable logic
-  R1.io.enable := io.enable
-  R2.io.enable := io.enable &  R1.io.newBit
-  R3.io.enable := io.enable & ~R1.io.newBit
+  // Create the selector signals for R1, R2 and R3
+  val loadR1 = (io.loadIt === B"01")
+  val loadR2 = (io.loadIt === B"10")
+  val loadR3 = (io.loadIt === B"11")
 
   // Select the correct register to load initial data
-  R1.io.loadIt := io.loadIt === B"01"
-  R2.io.loadIt := io.loadIt === B"10"
-  R3.io.loadIt := io.loadIt === B"11"
+  R1.io.loadIt := loadR1
+  R2.io.loadIt := loadR2
+  R3.io.loadIt := loadR3
+
+  // Create the enable logic
+  R1.io.enable :=  io.enable | loadR1
+  R2.io.enable := (io.enable &  R1.io.newBit) | loadR2
+  R3.io.enable := (io.enable & ~R1.io.newBit) | loadR3
 
   // Create the load signals of the shift registers
   R1.io.load := io.load
