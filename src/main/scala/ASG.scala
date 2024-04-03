@@ -56,9 +56,9 @@ class ASG (R1PolyString : String,
   R3.io.enable := io.enable & ~R1.io.newBit
 
   // Select the correct register to load initial data
-  R1.io.loadIt := io.loadIt === B"00"
-  R2.io.loadIt := io.loadIt === B"01"
-  R3.io.loadIt := io.loadIt === B"10"
+  R1.io.loadIt := io.loadIt === B"01"
+  R2.io.loadIt := io.loadIt === B"10"
+  R3.io.loadIt := io.loadIt === B"11"
 
   // Create the load signals of the shift registers
   R1.io.load := io.load
