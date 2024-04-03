@@ -120,10 +120,10 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
   private val genBit = taps.reduce((x,y) => x ^ y)
 
   // Check if the register should be loaded
-  when(io.load) {
+  when(io.loadIt) {
 
     // Get data to be loaded into the register
-    genBit := io.loadIt
+    genBit := io.load
 
   }
 
