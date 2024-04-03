@@ -15,6 +15,7 @@ import spinal.core._
 import spinal.core.sim._
 
 import Reporter._
+import java.io._
 
 object ASGSim {
 
@@ -54,6 +55,7 @@ object ASGSim {
 
       // Get the sized of the used registers
       val (lenR1, lenR2, lenR3) = dut.getRegisterLength
+      val lenASG = lenR1 + lenR2 + lenR3
                                               
       // Give some general info about the simulation
       printReport(s"Start simulation of ASG using R1=${connPolyStrR1}, R2=${connPolyStrR2} and R3=${connPolyStrR3}\n")
@@ -140,20 +142,41 @@ object ASGSim {
       // Counts the number of generates 1 bits
       var ones = 0
 
+      // Open a file for the generated bits
+      val dataFile = new FileWriter(new File("gen/sim/RandomData.txt"))
+
       // Remember the start time in cycles
       val startCycles = cycles
 
-      // Do 'numberOfBits' simulation steps
-      for (i <- 1 to numberOfBits) {
+      // Do 'numberOfBits' simulation steps (plus some more to make the output random)
+      for (i <- 1 to numberOfBits + 4 * lenASG) {
 
         // Generate another bit
         dut.io.enable #= true
         dut.io.loadIt #= 0x00
         dut.clockDomain.waitSampling()
      
-        // Check for 1 bit and sum up
-        if (dut.io.newBit.toBoolean) ones = ones + 1
-  
+        // Wait at least the length of all LFSR cycles (due to simple initialization)
+        if (cycles - startCycles > 4 * lenASG) {
+
+          // Check for 1 bit
+          if (dut.io.newBit.toBoolean) {
+          
+            // Write a 1 to the file
+            dataFile.write("1")
+
+            // Sum up
+            ones = ones + 1
+
+          } else {
+
+            // Write a 0 to the file
+            dataFile.write("0")
+        
+          }
+
+        }
+
       }
 
       // Remember the end time in cycles
@@ -165,6 +188,9 @@ object ASGSim {
       // Disable the ASG
       dut.io.enable #= false
       dut.clockDomain.waitSampling(10)
+
+      // Close file that stores the generated bits
+      dataFile.close()
 
     }
 
