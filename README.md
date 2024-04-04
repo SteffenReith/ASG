@@ -6,4 +6,6 @@ An ASG consists of three different "Linear Shift Feedback Registers" (LSFR), whi
 
 These algebraic properties must first be checked in order to obtain a usable (full period) LSFR for the ASG. This is done in software at the time the hardware is generated, i.e. a polynomial is configured and the software checks the properties "irreducible" and "primitive". If everything is OK, the corresponding hardware, i.e. an LSFR or ASG, is generated. This shows the advantages of a meta-HDL such as SpinalHDL, which uses the strengths of the software world (extensive libraries, high flexibility) to generate extremely configurable hardware descriptions.
 
+See TinyTapeOut 06 (https://github.com/TinyTapeout/tinytapeout-06/tree/main/projects/tt_um_SteffenReith_ASGTop) for an ASIC-implementation.
+
 \[1\] Stanislav Poslavsky, _Rings: An efficient Java/Scala library for polynomial rings_, Computer Physics Communications, Volume 235, 2019, Pages 400-413, [doi:10.1016/j.cpc.2018.09.005](https://doi.org/10.1016/j.cpc.2018.09.005)
