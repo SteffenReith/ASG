@@ -41,7 +41,7 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
     val p = primeFactors(num).asScala
 
     // Calculate all non trivial divisors represented as a list of primes
-    val divAsLists = ((1 until p.length flatMap(x => p.combinations(x))).toList).map(x => x.toList)
+    val divAsLists = (1 until p.length flatMap(x => p.combinations(x))).toList.map(x => x.toList)
      
     // Convert the list representations into a list of integers
     divAsLists.map(x => convertToNum(x)).sorted
