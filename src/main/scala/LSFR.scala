@@ -41,7 +41,7 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
     val p = primeFactors(num).asScala
 
     // Calculate all non trivial divisors represented as a list of primes
-    val divAsLists = (1 until p.length flatMap(x => p.combinations(x))).toList.map(x => x.toList)
+    val divAsLists = ((1 until p.length flatMap(x => p.combinations(x))).toList).map(x => x.toList)
      
     // Convert the list representations into a list of integers
     divAsLists.map(x => convertToNum(x)).sorted
@@ -71,7 +71,7 @@ class LSFR (polyString : String, trust : Boolean = false) extends Component {
   
     // Give a debug message about the trust mode
     println("[LSFR]: We are in trust mode!")
-    println(s"The properties of the provided connection polynomial ${polyString} is _not_ checked!")
+    println(s"The properties of the provided connection polynomial ${polyString} are _not_ checked!")
 
   } else {
 
